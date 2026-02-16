@@ -1,2 +1,3 @@
 # my-ai-dev-workflow
-AI-assisted development workflow repository
+
+Document the evolution of my AI development workflow and personal experiments to achieve a better usage of AI tools.
