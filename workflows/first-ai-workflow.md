@@ -16,7 +16,7 @@ flowchart TD
     end
     
     subgraph Refinement["Phase 2️⃣ : Refinement"]
-        AgentRefine["Agent: Plan Refinement<br/>Break into Micro-Tasks≤2min"]
+        AgentRefine["Agent: Plan Refinement<br/>Break into Micro-Tasks≤2min<br/>List Business Rules"]
         RefineSkills["Skills:<br/>- Task-Breakdown-Specialist<br/>- TDD<br/>- Feature Flags<br/>- Gradual Rollout"]
         AgentRefine -.->|uses| RefineSkills
     end
@@ -38,6 +38,7 @@ flowchart TD
         TestFail["2️⃣ Test-to-Fail<br/>(Models: Haiku 4.5, GPT)"]
         PassTest["3️⃣ Pass Test<br/>(Implementation)"]
         UpdatePlan["3.2️⃣ Update Plan File<br/>(Mark task done<br/>Record status)"]
+        PreCommit["3.5️⃣ Pre-Commit Hook<br/>(Verify Business Rules)"]
         Commit["4️⃣ Commit Changes"]
         CommitUpdate["Update session<br/>persistence"]
         
@@ -45,7 +46,8 @@ flowchart TD
         FeatureFlag --> TestFail
         TestFail --> PassTest
         PassTest --> UpdatePlan
-        UpdatePlan --> Commit
+        UpdatePlan --> PreCommit
+        PreCommit --> Commit
         Commit --> CommitUpdate
     end
     
@@ -78,12 +80,14 @@ flowchart TD
 ### Phase 2: Agent Plan Refinement
 - **Purpose**: Convert initial plan into concrete, measurable micro-tasks
 - **Breakdown**: Each task targets ~2 minutes of work
+- **Business Rule Identification**: Explicitly list all new, updated, and deleted business rules
 - **Skills**: Breakdown-task-specialist, TDD, Feature Flag, Gradual Rollout
 - **Models**: Opus 4.5, Haiku 4.5
 - **Output**: Detailed task breakdown ready for execution
 
 ### Phase 3: Human Review
 - **Purpose**: Validate plan before starting execution
+- **Business Rule Verification**: Plan must explicitly list all new, updated, and deleted business rules for targeted review
 - **Feedback**: Can loop back to Plan Mode if adjustments needed
 - **Context Persistence**: Generate session files and GitHub issues
 - **Output**: Approved task list with context stored
@@ -92,6 +96,7 @@ flowchart TD
 - **Feature Flag**: Set up feature flag infrastructure
 - **Test-Driven**: Write failing test first (Red-Green-Refactor)
 - **Implementation**: Make tests pass
+- **Pre-Commit Hook**: Automatically request human verification of new, updated, and deleted business rules
 - **Commit**: Version control integration
 - **Iteration**: Repeat for each micro-task until complete
 
@@ -102,7 +107,8 @@ flowchart TD
 3. **Human-in-the-Loop Review**: Always validate AI plan before execution
 4. **Persistent Context**: Store session details for continuity across sessions
 5. **Test-First Implementation**: Ensure quality with TDD methodology
-6. **Feature Flags**: Safe rollout with gradual feature enablement
+6. **Business Rule Verification**: Ensure human verification of the most important/sensitive logic (business rules) even if full code review isn't performed
+7. **Feature Flags**: Safe rollout with gradual feature enablement
 
 ## Session Persistence
 
