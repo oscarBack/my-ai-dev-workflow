@@ -73,6 +73,7 @@ flowchart TD
 
 ### Phase 1: Plan Mode
 - **Purpose**: Clarify requirements and scope with conversational AI
+- **File Naming Standard**: `.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md` (e.g., `.ai/plans/20260219-42-add-auth.plan.md`)
 - **Tools**: Skills for brainstorming and asking clarifying questions
 - **Models**: Opus 4.5, Haiku 4.5
 - **Output**: Initial plan and understanding
