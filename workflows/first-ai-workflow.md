@@ -78,6 +78,8 @@ flowchart TD
 - **Tools**: Skills for brainstorming and asking clarifying questions
 - **Models**: Opus 4.5, Haiku 4.5
 - **Output**: Initial conversational plan submitted for human review
+- **Self-Contained Prompt**:
+  > "Act as an expert software architect. I want to build [Feature/Fix]. Ask me clarifying questions to understand the requirements, scope, and edge cases. Once we have enough context, generate a simple task list in `.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md` with an overview, a list of tasks, and any open questions."
 
 ### Phase 2: Agent Plan Refinement
 - **Purpose**: Convert initial plan into concrete, measurable micro-tasks with strict schema
@@ -88,6 +90,10 @@ flowchart TD
 - **Skills**: Breakdown-task-specialist, TDD, Feature Flag, Gradual Rollout
 - **Models**: Opus 4.5, Haiku 4.5
 - **Output**: Detailed task breakdown with clear completion tracking (In Progress → Done sections)
+- **Self-Contained Prompt**:
+  > "Take the provided high-level plan and refine it into concrete micro-tasks (≤2 minutes of work each). For each task, explicitly list new, updated, and deleted business rules, acceptance criteria, dependencies, required tests, relevant file/directory references for context, and suggested skills to use. Format the output as a detailed markdown plan, placing all tasks in an 'In Progress' section."
+- **Adding Skills to the Prompt**:
+  > "Please use the following skills to guide your refinement: [List Skills, e.g., Breakdown-task-specialist, TDD]. Apply their principles to ensure the micro-tasks are properly scoped and testable."
 
 ### Phase 3: Human Review
 - **Purpose**: Validate plan before starting execution
@@ -95,6 +101,8 @@ flowchart TD
 - **Feedback**: Can loop back to Plan Mode if adjustments needed
 - **Context Persistence**: Generate session files and GitHub issues
 - **Output**: Approved task list with context stored
+- **Self-Contained Prompt**:
+  > "Please review the detailed plan I just generated. Check specifically if the identified business rules are accurate and if the micro-tasks are appropriately sized. Reply with 'Approved' to proceed to execution, or provide feedback for adjustments. Once approved, I will ensure session context is saved."
 
 ### Phase 4: Execution (Agent-driven)
 - **Purpose**: Execute approved micro-tasks using TDD and feature flags
@@ -106,6 +114,8 @@ flowchart TD
 - **Commit**: Version control integration (reference commit SHA in plan's Done section)
 - **Iteration**: Repeat for each micro-task until all tasks move to Done
 - **Plan Updates**: Keep plan file synchronized with task progress (see Plan Format → Task Status Legend)
+- **Self-Contained Prompt**:
+  > "Read the detailed plan in `.ai/plans/`. Pick the first unblocked task from the 'In Progress' section. Follow TDD (write failing tests first, then pass them) and use feature flags if applicable. Once the task is complete and tests pass, move the task to the '✅ Done' section in the plan file, update the status, and prepare a commit. Do not proceed to the next task until I approve the current one."
 
 ## Key Principles
 
@@ -163,6 +173,8 @@ Brief description of what we're building.
 - **Status**: 🔄 IN_PROGRESS
 - **GitHub Issue**: [Link to issue, e.g., #123](https://github.com/org/repo/issues/123)
 - **Est. Time**: ~2min
+- **File/Directory References**: [List relevant files/directories, e.g., `src/auth.ts`, `tests/auth/`]
+- **Suggested Skills**: [List skills to use, e.g., `TDD`, `mermaid-diagrams`]
 - **Business Rules**
   - New: [Describe new business rules]
   - Updated: [Describe changed business logic]
@@ -180,6 +192,8 @@ Brief description of what we're building.
 - **Status**: 🟡 BLOCKED (waiting for Task 1)
 - **GitHub Issue**: [Link]
 - **Est. Time**: ~2min
+- **File/Directory References**: [List relevant files/directories]
+- **Suggested Skills**: [List skills to use]
 - **Business Rules**
   - New: [...]
 - **Acceptance Criteria**
