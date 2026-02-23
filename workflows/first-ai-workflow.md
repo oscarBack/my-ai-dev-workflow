@@ -91,7 +91,7 @@ flowchart TD
 - **Models**: Opus 4.5, Haiku 4.5
 - **Output**: Detailed task breakdown with clear completion tracking (In Progress → Done sections)
 - **Self-Contained Prompt**:
-  > "Take the provided high-level plan and refine it into concrete micro-tasks (≤2 minutes of work each). For each task, explicitly list new, updated, and deleted business rules, acceptance criteria, dependencies, required tests, relevant file/directory references for context, and suggested skills to use. Format the output as a detailed markdown plan, placing all tasks in an 'In Progress' section."
+  > "Take the provided high-level plan and refine it into concrete micro-tasks (≤2 minutes of work each). For each task, explicitly list new, updated, and deleted business rules, acceptance criteria, dependencies, required tests, expected failing tests (to maintain TDD boundaries), relevant file/directory references for context, and suggested skills to use. Format the output as a detailed markdown plan, placing all tasks in an 'In Progress' section."
 - **Adding Skills to the Prompt**:
   > "Please use the following skills to guide your refinement: [List Skills, e.g., Breakdown-task-specialist, TDD]. Apply their principles to ensure the micro-tasks are properly scoped and testable."
 
@@ -187,6 +187,7 @@ Brief description of what we're building.
 - **Tests Required**
   - Unit test: [describe what to test]
   - Integration test: [describe scenario]
+- **Expected Failing Tests**: [List tests that should remain failing during this task to maintain TDD boundaries]
 
 ### Task 2: [Title]
 - **Status**: 🟡 BLOCKED (waiting for Task 1)
@@ -201,6 +202,7 @@ Brief description of what we're building.
 - **Dependencies**: Task 1
 - **Tests Required**
   - Unit test: [...]
+- **Expected Failing Tests**: [...]
 
 ## ✅ Done
 
