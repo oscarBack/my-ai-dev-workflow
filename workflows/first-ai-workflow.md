@@ -3,6 +3,7 @@
 ## Overview
 This workflow describes the process for implementing new features or fixes on existing projects using AI assistance, structured planning, and iterative refinement. It integrates **OpenSpec**, a Spec-Driven Development (SDD) framework designed specifically for AI coding assistants, to align human intent with AI execution before any code is written.
 
+
 ## Workflow Diagram
 
 ```mermaid
