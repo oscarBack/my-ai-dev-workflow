@@ -1,7 +1,7 @@
-# AI-Assisted Development Workflow
+# AI-Assisted Development Workflow with OpenSpec
 
 ## Overview
-This workflow describes the process for implementing new features or fixes on existing projects using AI assistance, structured planning, and iterative refinement.
+This workflow describes the process for implementing new features or fixes on existing projects using AI assistance, structured planning, and iterative refinement. It integrates **OpenSpec**, a Spec-Driven Development (SDD) framework designed specifically for AI coding assistants, to align human intent with AI execution before any code is written.
 
 ## Workflow Diagram
 
@@ -9,169 +9,137 @@ This workflow describes the process for implementing new features or fixes on ex
 flowchart TD
     Start([🚀 New Feature or Fix]) 
     
-    subgraph Planning["Phase 1️⃣ : Planning"]
-        PlanMode["🎯 Plan Mode<br/>(Conversational)"]
-        PlanTools["AI Skills:<br/>- Brainstorming<br/>- Ask Questions<br/>- Clarify Ambiguities"]
-        PlanMode -.->|uses| PlanTools
+    subgraph Setup["Phase 0️⃣ : Setup"]
+        Init["openspec init"]
     end
     
-    subgraph Refinement["Phase 2️⃣ : Refinement"]
-        AgentRefine["Agent: Plan Refinement<br/>Break into Micro-Tasks≤2min<br/>List Business Rules"]
-        RefineSkills["Skills:<br/>- Task-Breakdown-Specialist<br/>- TDD<br/>- Feature Flags<br/>- Gradual Rollout"]
-        AgentRefine -.->|uses| RefineSkills
+    subgraph Planning["Phase 1️⃣ : Exploration & Proposal"]
+        Explore["/opsx:explore<br/>(Investigate Codebase)"]
+        NewChange["/opsx:new <feature><br/>(Create Change Folder)"]
+        Proposal["Generate proposal.md & specs/"]
+        Explore -.-> NewChange
+        NewChange --> Proposal
     end
     
-    subgraph Review["Phase 3️⃣ : Review & Approve"]
-        HumanReview{"👤 Human Review<br/>Approve Plan?"}
-        Feedback["❌ Request Changes"]
+    subgraph Refinement["Phase 2️⃣ : Design & Tasks"]
+        FastForward["/opsx:ff<br/>(Fast-Forward Artifacts)"]
+        Design["Generate design.md"]
+        Tasks["Generate tasks.md<br/>(Micro-Tasks ≤2min)"]
+        FastForward --> Design
+        Design --> Tasks
     end
     
-    subgraph Persistence["Phase 4️⃣ : Context Persistence"]
-        Persist["💾 Store Session Context"]
-        EnsureItems["✓ MD session file<br/>✓ GitHub issues<br/>✓ Current task pointer"]
-        Persist -.->|ensures| EnsureItems
+    subgraph Review["Phase 3️⃣ : Human Review"]
+        HumanReview{"👤 Review Artifacts<br/>(proposal, specs, design, tasks)"}
+        Feedback["❌ Edit Markdown Files"]
     end
     
-    subgraph Execution["Phase 5️⃣ : Execution Loop"]
-        TaskLoop["Repeat for each Task:"]
-        FeatureFlag["1️⃣ Feature Flag<br/>(Models: Sonnet 4, Haiku 4.5)"]
-        TestFail["2️⃣ Test-to-Fail<br/>(Models: Haiku 4.5, GPT)"]
-        PassTest["3️⃣ Pass Test<br/>(Implementation)"]
-        UpdatePlan["3.2️⃣ Update Plan File<br/>(Mark task done<br/>Record status)"]
-        PreCommit["3.5️⃣ Pre-Commit Hook<br/>(Verify Business Rules)"]
-        Commit["4️⃣ Commit Changes"]
-        CommitUpdate["Update session<br/>persistence"]
+    subgraph Execution["Phase 4️⃣ : Execution & Verification"]
+        Apply["/opsx:apply<br/>(Execute Tasks & TDD)"]
+        Verify["/opsx:verify<br/>(Audit against Specs)"]
+        Archive["/opsx:archive<br/>(Merge Specs & Archive)"]
         
-        TaskLoop --> FeatureFlag
-        FeatureFlag --> TestFail
-        TestFail --> PassTest
-        PassTest --> UpdatePlan
-        UpdatePlan --> PreCommit
-        PreCommit --> Commit
-        Commit --> CommitUpdate
+        Apply --> Verify
+        Verify --> Archive
     end
     
-    Start --> Planning
+    Start --> Setup
+    Setup --> Planning
     Planning --> Refinement
     Refinement --> Review
-    HumanReview -->|✅ Approved| Persistence
+    HumanReview -->|✅ Approved| Execution
     HumanReview -->|❌ Rejected| Feedback
-    Feedback -->|Loop back| Planning
-    Persistence --> Execution
-    CommitUpdate --> MoreTasks{More Tasks?}
-    MoreTasks -->|Yes| TaskLoop
-    MoreTasks -->|No| Complete([✨ Complete])
+    Feedback -->|Loop back| Refinement
+    Archive --> Complete([✨ Complete])
     
+    style Setup fill:#f0f4c3
     style Planning fill:#e1f5ff
     style Refinement fill:#f3e5f5
     style Review fill:#fff3e0
-    style Persistence fill:#e8f5e9
     style Execution fill:#fce4ec
 ```
 
+## Installation & Configuration
+
+Before starting, ensure OpenSpec is installed and initialized in your project.
+
+1. **Install OpenSpec globally** (requires Node.js 20.19.0+):
+   ```bash
+   npm install -g @fission-ai/openspec@latest
+   # or using pnpm, yarn, bun
+   ```
+2. **Initialize in your project**:
+   ```bash
+   cd your-project-directory
+   openspec init
+   ```
+   This creates the `openspec/` directory structure (`specs/`, `changes/`, etc.).
+
 ## Workflow Phases
 
-### Phase 1: Plan Mode
-- **Purpose**: Clarify requirements and scope with conversational AI
-- **File Naming Standard**: `.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md` (e.g., `.ai/plans/20260219-42-add-auth.plan.md`)
-- **Format**: Simple task list with open questions (see Plan Format → Phase 1)
-- **Tools**: Skills for brainstorming and asking clarifying questions
+### Phase 1: Exploration & Proposal
+- **Purpose**: Clarify requirements, investigate the codebase, and establish the behavioral contract.
+- **Commands**: `/opsx:explore`, `/opsx:new <feature-name>`
+- **Artifacts Generated**: `proposal.md` (intent and scope), `specs/` (Given/When/Then scenarios).
 - **Models**: Opus 4.5, Haiku 4.5
-- **Output**: Initial conversational plan submitted for human review
 - **Self-Contained Prompt**:
-  > "Act as an expert software architect. I want to build [Feature/Fix]. Ask me clarifying questions to understand the requirements, scope, and edge cases. Once we have enough context, generate a simple task list in `.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md` with an overview, a list of tasks, and any open questions."
+  > "Act as an expert software architect. I want to build [Feature/Fix]. First, use `/opsx:explore` to investigate the codebase and ask me clarifying questions. Once we have enough context, use `/opsx:new [feature-name]` to create a new change folder and generate the `proposal.md` and `specs/` to establish the behavioral contract."
 
-### Phase 2: Agent Plan Refinement
-- **Purpose**: Convert initial plan into concrete, measurable micro-tasks with strict schema
-- **Transition**: Human approves Phase 1 plan; Human + Agent collaborate to refine into Phase 2 structure
-- **Format**: Detailed tasks with Title, Status, Business Rules, Acceptance Criteria, Dependencies, GitHub Links, Tests (see Plan Format → Phase 2)
-- **Breakdown**: Each task targets ~2 minutes of work
-- **Business Rule Identification**: Explicitly list all new, updated, and deleted business rules per task
+### Phase 2: Design & Tasks (Refinement)
+- **Purpose**: Convert the proposal and specs into a technical design and concrete, measurable micro-tasks.
+- **Commands**: `/opsx:ff` (Fast-forward) or `/opsx:continue`
+- **Artifacts Generated**: `design.md` (technical approach), `tasks.md` (implementation checklist).
+- **Breakdown**: Each task in `tasks.md` targets ~2 minutes of work.
 - **Skills**: Breakdown-task-specialist, TDD, Feature Flag, Gradual Rollout
-- **Models**: Opus 4.5, Haiku 4.5
-- **Output**: Detailed task breakdown with clear completion tracking (In Progress → Done sections)
 - **Self-Contained Prompt**:
-  > "Take the provided high-level plan and refine it into concrete micro-tasks (≤2 minutes of work each). For each task, explicitly list new, updated, and deleted business rules, acceptance criteria, dependencies, required tests, expected failing tests (to maintain TDD boundaries), relevant file/directory references for context, and suggested skills to use. Format the output as a detailed markdown plan, placing all tasks in an 'In Progress' section."
+  > "Now that the proposal and specs are approved, use `/opsx:ff` to generate the `design.md` and `tasks.md`. In the `tasks.md`, refine the work into concrete micro-tasks (≤2 minutes of work each). For each task, explicitly list new/updated/deleted business rules, acceptance criteria, dependencies, required tests, expected failing tests (to maintain TDD boundaries), relevant file/directory references, and suggested skills to use."
 - **Adding Skills to the Prompt**:
   > "Please use the following skills to guide your refinement: [List Skills, e.g., Breakdown-task-specialist, TDD]. Apply their principles to ensure the micro-tasks are properly scoped and testable."
 
 ### Phase 3: Human Review
-- **Purpose**: Validate plan before starting execution
-- **Business Rule Verification**: Plan must explicitly list all new, updated, and deleted business rules for targeted review
-- **Feedback**: Can loop back to Plan Mode if adjustments needed
-- **Context Persistence**: Generate session files and GitHub issues
-- **Output**: Approved task list with context stored
+- **Purpose**: Validate the OpenSpec artifacts before any code is written.
+- **Review Focus**: Check `proposal.md` for scope, `specs/` for business rules, `design.md` for architecture, and `tasks.md` for task sizing.
+- **Feedback**: Edit the markdown files directly if adjustments are needed. The AI treats these files as the absolute source of truth.
 - **Self-Contained Prompt**:
-  > "Please review the detailed plan I just generated. Check specifically if the identified business rules are accurate and if the micro-tasks are appropriately sized. Reply with 'Approved' to proceed to execution, or provide feedback for adjustments. Once approved, I will ensure session context is saved."
+  > "Please review the generated artifacts in the `openspec/changes/[feature-name]/` folder. Check specifically if the identified business rules in the specs are accurate and if the micro-tasks in `tasks.md` are appropriately sized. Reply with 'Approved' to proceed to execution, or edit the markdown files directly to provide feedback."
 
-### Phase 4: Execution (Agent-driven)
-- **Purpose**: Execute approved micro-tasks using TDD and feature flags
-- **Feature Flag**: Set up feature flag infrastructure
-- **Test-Driven**: Write failing test first (Red-Green-Refactor)
-- **Implementation**: Make tests pass
-- **Task Completion**: Move task from "In Progress" → "✅ Done" section in plan file
-- **Pre-Commit Hook**: Automatically request human verification of new, updated, and deleted business rules
-- **Commit**: Version control integration (reference commit SHA in plan's Done section)
-- **Iteration**: Repeat for each micro-task until all tasks move to Done
-- **Plan Updates**: Keep plan file synchronized with task progress (see Plan Format → Task Status Legend)
+### Phase 4: Execution & Verification (Agent-driven)
+- **Purpose**: Execute the micro-tasks, verify against specs, and finalize the change.
+- **Commands**: `/opsx:apply`, `/opsx:verify`, `/opsx:archive`
+- **Implementation**: The AI reads `tasks.md`, writes code (following TDD and feature flags), and physically checks off the markdown checkboxes (`[x]`).
+- **Verification**: The AI audits its own work against the `specs/` and `design.md`.
 - **Self-Contained Prompt**:
-  > "Read the detailed plan in `.ai/plans/`. Pick the first unblocked task from the 'In Progress' section. Follow TDD (write failing tests first, then pass them) and use feature flags if applicable. Once the task is complete and tests pass, move the task to the '✅ Done' section in the plan file, update the status, and prepare a commit. Do not proceed to the next task until I approve the current one."
+  > "We are now in the Execution phase. Run `/opsx:apply` to start implementing the tasks in `tasks.md`. Follow TDD (write failing tests first, then pass them) and use feature flags if applicable. Check off tasks as they are completed. Once all tasks are done, run `/opsx:verify` to audit the implementation against the specs. Do not run `/opsx:archive` until I approve the verification results."
 
 ## Key Principles
 
-1. **Conversation-Driven Planning**: Start with natural discussion to clarify ambiguous requirements
-2. **Micro-Task Decomposition**: Break work into small, completable units (≤2 min each)
-3. **Human-in-the-Loop Review**: Always validate AI plan before execution
-4. **Persistent Context**: Store session details for continuity across sessions
-5. **Test-First Implementation**: Ensure quality with TDD methodology
-6. **Business Rule Verification**: Ensure human verification of the most important/sensitive logic (business rules) even if full code review isn't performed
-7. **Feature Flags**: Safe rollout with gradual feature enablement
+1. **Spec-Driven Development (SDD)**: Align human intent with AI execution *before* writing code.
+2. **Artifact-Guided Workflow**: Use structured documents (`proposal`, `specs`, `design`, `tasks`) to guide the AI.
+3. **Delta Specs**: Focus only on what is changing (`ADDED`, `MODIFIED`, `REMOVED`) relative to the current system, rather than rewriting entire system specs.
+4. **Micro-Task Decomposition**: Break work into small, completable units (≤2 min each) in the `tasks.md`.
+5. **Human-in-the-Loop Review**: Always validate the OpenSpec artifacts before execution.
+6. **Test-First Implementation**: Ensure quality with TDD methodology.
 
-## Plan Format
+## OpenSpec Artifacts Format
 
-### Phase 1: Simple Plan Format (Before Human Review)
+When a new change is created (`/opsx:new`), OpenSpec generates an isolated folder (e.g., `openspec/changes/add-auth/`) containing:
 
-Create a conversational task list in `.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md`:
+### 1. `proposal.md`
+The "why" and "what". Defines the intent, scope, and out-of-scope items.
 
-```markdown
-# Plan: [Feature/Fix Name]
-**Date**: 2026-02-20  
-**Issue**: [GitHub issue link or #123]  
-**Status**: 📋 Planning
+### 2. `specs/`
+The behavior contract. Uses RFC 2119 keywords (MUST, SHALL, SHOULD) and structured Given/When/Then scenarios.
 
-## Overview
-Brief description of what we're building.
+### 3. `design.md`
+The "how". Details the technical approach, architecture decisions, and data models.
 
-## Tasks
-
-- [ ] Task 1 description
-- [ ] Task 2 description
-- [ ] Task 3 description
-
-## Open Questions
-- Question 1?
-- Question 2?
-```
-
-### Phase 2: Detailed Plan Format (After Human Review & Approval)
-
-After human review, Human + Agent collaborate to transform into detailed schema:
+### 4. `tasks.md` (Detailed Plan Format)
+The implementation checklist. Tasks should follow this detailed schema:
 
 ```markdown
-# Plan: [Feature/Fix Name]
-**Date**: 2026-02-20  
-**Issue**: [GitHub issue link]  
-**Status**: ✅ Approved & In Execution  
-**Model Strategy**: Sonnet 4 (flags), Haiku 4.5 (tests), Opus 4.5 (complex)
+## Implementation Tasks
 
-## Overview
-Brief description of what we're building.
-
-## In Progress
-
-### Task 1: [Title]
-- **Status**: 🔄 IN_PROGRESS
-- **GitHub Issue**: [Link to issue, e.g., #123](https://github.com/org/repo/issues/123)
+### [ ] Task 1: [Title]
 - **Est. Time**: ~2min
 - **File/Directory References**: [List relevant files/directories, e.g., `src/auth.ts`, `tests/auth/`]
 - **Suggested Skills**: [List skills to use, e.g., `TDD`, `mermaid-diagrams`]
@@ -182,77 +150,28 @@ Brief description of what we're building.
 - **Acceptance Criteria**
   - [ ] Criterion 1
   - [ ] Criterion 2
-  - [ ] Criterion 3
-- **Dependencies**: None | Task 0 must complete first
+- **Dependencies**: None
 - **Tests Required**
   - Unit test: [describe what to test]
-  - Integration test: [describe scenario]
 - **Expected Failing Tests**: [List tests that should remain failing during this task to maintain TDD boundaries]
 
-### Task 2: [Title]
-- **Status**: 🟡 BLOCKED (waiting for Task 1)
-- **GitHub Issue**: [Link]
+### [ ] Task 2: [Title]
 - **Est. Time**: ~2min
-- **File/Directory References**: [List relevant files/directories]
-- **Suggested Skills**: [List skills to use]
-- **Business Rules**
-  - New: [...]
-- **Acceptance Criteria**
-  - [ ] Criterion 1
-- **Dependencies**: Task 1
-- **Tests Required**
-  - Unit test: [...]
-- **Expected Failing Tests**: [...]
-
-## ✅ Done
-
-### Task 0: [Completed Task Name]
-- **Status**: ✅ DONE
-- **GitHub Issue**: [Link]
-- **Completed**: Commit [sha](https://github.com/org/repo/commit/sha)
+...
 ```
-
-**Note on Schema Flexibility**: The fields shown above are the **minimum required** for Phase 2 tasks. You may add optional fields as needed:
-- **Code Examples**: Before/after snippets to illustrate expected changes
-- **Notes**: Implementation details, gotchas, or edge cases
-- **References**: Links to related code, documentation, or architectural decisions
-- **Context**: Additional background for complex tasks
-- **Verification Steps**: Manual steps to verify completion beyond automated tests
-
-The schema adapts to task complexity—simple tasks may use minimal fields, while complex tasks can include extensive examples and context.
-
-### Task Status Legend
-
-| Status | Icon | Meaning |
-|--------|------|---------|
-| Pending | 📭 | Not started |
-| In Progress | 🔄 | Currently being worked on |
-| Blocked | 🟡 | Waiting on dependency or decision |
-| Done | ✅ | Complete & committed |
-
-### Completing a Task
-
-When a task is complete:
-1. Move task block from "In Progress" → "✅ Done" section
-2. Change status to `✅ DONE`
-3. Add completion info (commit SHA, link)
-4. Update related GitHub issue
 
 ## Session Persistence
 
-Between sessions, maintain:
-- Markdown file documenting the current plan and progress (`.ai/plans/YYYYMMDD-[issue#]-[slug].plan.md`)
-- GitHub issues tracking individual micro-tasks (linked in plan)
-- Selected task information for agent continuation
-- Clear visibility of completed vs. remaining work (Done section vs. In Progress section)
+Between sessions, context is maintained via the OpenSpec directory structure:
+- **Active Changes**: Stored in `openspec/changes/<feature-name>/`.
+- **Completed Changes**: Merged into the main `openspec/specs/` directory and moved to `openspec/archive/` via the `/opsx:archive` command.
 
 ## AI Models Used
 
-- **Opus 4.5**: Complex planning, refinement
-- **Haiku 4.5**: Task execution, quick implementations
-- **Sonnet 4**: Feature flag implementation
-- **GPT 4o**: Advanced testing scenarios
-- **GPT 4.1**: Integration and complex logic
+- **Opus 4.5**: Complex planning, refinement, and design generation.
+- **Haiku 4.5**: Task execution, quick implementations, and test writing.
+- **Sonnet 4**: Feature flag implementation and verification.
+- **GPT 4o**: Advanced testing scenarios.
 
 ## When to Use This Workflow
 
@@ -266,3 +185,12 @@ Between sessions, maintain:
 - Trivial one-liner fixes
 - Well-understood, routine tasks
 - Emergency hotfixes (though consider adding context after)
+
+## References
+
+- [OpenSpec Getting Started](https://github.com/Fission-AI/OpenSpec/blob/main/docs/getting-started.md)
+- [OpenSpec Installation](https://github.com/Fission-AI/OpenSpec/blob/main/docs/installation.md)
+- [OpenSpec Workflows](https://github.com/Fission-AI/OpenSpec/blob/main/docs/workflows.md)
+- [OpenSpec Customization](https://github.com/Fission-AI/OpenSpec/blob/main/docs/customization.md)
+- [OpenSpec Commands](https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md)
+- [OpenSpec Concepts](https://github.com/Fission-AI/OpenSpec/blob/main/docs/concepts.md)
